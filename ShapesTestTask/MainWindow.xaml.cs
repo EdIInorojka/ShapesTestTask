@@ -6,14 +6,11 @@ using System.Windows.Shapes;
 
 namespace ShapesTestTask
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private readonly IShapeService _shapeService;
-        private Shape _draggedShape; // Для перетаскивания шейпа
-        private Point _dragStartPoint; // Начальная точка для перетаскивания
+        private Shape _draggedShape;
+        private Point _dragStartPoint;
         public MainWindow() : this(new ShapeService())
         {
         }
@@ -25,6 +22,7 @@ namespace ShapesTestTask
             LoadShapes();
         }
 
+        // Загружает шейпы из сервиса и добавляет их на Canvas и в ComboBox
         private void LoadShapes()
         {
             var shapes = _shapeService.GetShapes();
@@ -36,6 +34,7 @@ namespace ShapesTestTask
             }
         }
 
+        // Добавляет новый шейп на Canvas и ComboBox
         private void AddShapeButton_Click(object sender, RoutedEventArgs e)
         {
             var newShape = _shapeService.AddShape(ShapesCanvas.ActualWidth, ShapesCanvas.ActualHeight);
@@ -53,6 +52,7 @@ namespace ShapesTestTask
             ShapeComboBox.Items.Add(newShape);
         }
 
+        // Удаляет выбранный шейп и обновляет линии
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (ShapeComboBox.SelectedItem is Shape selectedShape)
@@ -76,11 +76,11 @@ namespace ShapesTestTask
                         break;
                     }
                 }
-                // Разблокируем кнопку добавления
                 AddShapeButton.IsEnabled = true;
             }
         }
 
+        // Обрабатывает выбор шейпа в ComboBox и выделяет его на Canvas
         private void ShapeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ShapeComboBox.SelectedItem is Shape selectedShape)
@@ -94,9 +94,9 @@ namespace ShapesTestTask
             }
         }
 
+        // Добавляет шейп на Canvas с учетом его параметров и линий
         private void AddShapeToCanvas(Shape shape)
         {
-            // Создаем текст с названием фигуры
             var textBlock = new TextBlock
             {
                 Text = shape.Name,
@@ -105,7 +105,6 @@ namespace ShapesTestTask
                 Foreground = Brushes.Black
             };
 
-            // Создаем прямоугольник с текстом внутри
             var border = new Border
             {
                 Width = 100,
@@ -113,18 +112,16 @@ namespace ShapesTestTask
                 BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(shape.Color)),
                 Background = Brushes.LightGray,
                 Child = textBlock,
-                Tag = shape // Сохраняем Shape внутри
+                Tag = shape
             };
 
             Canvas.SetLeft(border, shape.X);
             Canvas.SetTop(border, shape.Y);
 
-            // Добавляем обработчики для клика и перетаскивания
             border.MouseLeftButtonDown += Shape_MouseLeftButtonDown;
             border.MouseMove += Shape_MouseMove;
             border.MouseLeftButtonUp += Shape_MouseLeftButtonUp;
 
-            // Добавляем прямоугольник на Canvas
             ShapesCanvas.Children.Add(border);
 
             if (shape.PreviousShape != null)
@@ -135,25 +132,23 @@ namespace ShapesTestTask
             CheckFreePositions();
         }
 
+        // Создает линию со стрелкой между шейпами
         private void CreateArrowLineWithArrow(Shape shape)
         {
-            Line line = CreateArrowLine(shape); // Основная линия, которая уже создаётся вашим методом
+            Line line = CreateArrowLine(shape);
 
             if(line != null)
             {
-                // Создание геометрии для стрелочки
-                double arrowSize = 10; // Длина стрелки
-                double arrowWidthFactor = 0.5; // Коэффициент ширины (уменьшаем угол)
+                double arrowSize = 10;
+                double arrowWidthFactor = 0.5;
 
                 Vector direction = new Vector(line.X2 - line.X1, line.Y2 - line.Y1);
                 direction.Normalize();
 
-                // Точки для треугольника (стрелочки)
                 Point endPoint = new Point(line.X2, line.Y2);
                 Point arrowPoint1 = endPoint - arrowSize * direction + (arrowSize * arrowWidthFactor) * new Vector(-direction.Y, direction.X);
                 Point arrowPoint2 = endPoint - arrowSize * direction - (arrowSize * arrowWidthFactor) * new Vector(-direction.Y, direction.X);
 
-                // Создаём стрелочку (Path)
                 Path arrowHead = new Path
                 {
                     Stroke = Brushes.Black,
@@ -170,32 +165,30 @@ namespace ShapesTestTask
                 })
                 };
 
-                // Добавляем линию и стрелочку в Canvas (или другой контейнер)
                 var canvas = Application.Current.MainWindow.FindName("ShapesCanvas") as Canvas;
-                canvas.Children.Add(line); // Добавляем саму линию
-                canvas.Children.Add(arrowHead); // Добавляем стрелочку
+                canvas.Children.Add(line);
+                canvas.Children.Add(arrowHead);
             }
         }
 
+        // Создает основную линию между шейпами
         private Line CreateArrowLine(Shape shape)
         {
             if (shape.PreviousShape != null)
             {
-                // Координаты середины сторон для PreviousShape
-                double previousTopCenterX = shape.PreviousShape.X + 50; // Середина верхней стороны
+                double previousTopCenterX = shape.PreviousShape.X + 50;
                 double previousTopCenterY = shape.PreviousShape.Y;
 
-                double previousBottomCenterX = shape.PreviousShape.X + 50; // Середина нижней стороны
+                double previousBottomCenterX = shape.PreviousShape.X + 50;
                 double previousBottomCenterY = shape.PreviousShape.Y + 50;
 
-                double previousRightCenterX = shape.PreviousShape.X + 100; // Середина правой стороны
+                double previousRightCenterX = shape.PreviousShape.X + 100;
                 double previousRightCenterY = shape.PreviousShape.Y + 25;
 
-                double previousLeftCenterX = shape.PreviousShape.X; // Середина левой стороны
+                double previousLeftCenterX = shape.PreviousShape.X;
                 double previousLeftCenterY = shape.PreviousShape.Y + 25;
 
 
-                // Координаты середины сторон для текущего элемента
                 double currentTopCenterX = shape.X + 50;
                 double currentTopCenterY = shape.Y;
 
@@ -208,7 +201,6 @@ namespace ShapesTestTask
                 double currentLeftCenterX = shape.X;
                 double currentLeftCenterY = shape.Y + 25;
 
-                // Генерация всех четырёх линий
                 var lines = new List<(Line line, double length)>
                 {
                     (new Line
@@ -273,16 +265,15 @@ namespace ShapesTestTask
             return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
         }
 
+        // Обновляет линию со стрелкой после изменения положения шейпа
         private void UpdateArrowLine(Shape shape)
         {
-            // Удаляем старую линию к предыдущему Shape, если она есть
             if (shape.PreviousShape != null)
             {
                 RemoveExistingLine(shape.PreviousShape, shape);
                 CreateArrowLineWithArrow(shape);
             }
 
-            // Удаляем старую линию к следующему Shape, если она есть
             if (shape.NextShape != null)
             {
                 RemoveExistingLine(shape, shape.NextShape);
@@ -290,9 +281,9 @@ namespace ShapesTestTask
             }
         }
 
+        // Удаляет существующую линию между двумя шейпами
         private void RemoveExistingLine(Shape fromShape, Shape toShape)
         {
-            // Найти существующую линию в Canvas
             var existingLine = ShapesCanvas.Children.OfType<Line>()
                 .FirstOrDefault(line =>
                     line.Tag is Shape taggedShape &&
@@ -313,9 +304,9 @@ namespace ShapesTestTask
             }
         }
 
+        // Подсвечивает выбранный шейп
         private void HighlightShape(Shape selectedShape)
         {
-            // Сброс выделения всех шейпов
             foreach (var child in ShapesCanvas.Children)
             {
                 if (child is Border border)
@@ -331,7 +322,6 @@ namespace ShapesTestTask
                 }
             }
 
-            // Выделяем текущий шейп
             var shapeToHighlight = ShapesCanvas.Children.OfType<Border>()
                 .FirstOrDefault(b => b.Tag == selectedShape);
 
@@ -341,6 +331,7 @@ namespace ShapesTestTask
             }
         }
 
+        // Обработчики событий перетаскивания шейпов
         private void Shape_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border border && border.Tag is Shape shape)
@@ -365,7 +356,6 @@ namespace ShapesTestTask
 
                 _dragStartPoint = currentPoint;
 
-                // Обновляем позицию шейпа
                 var border = ShapesCanvas.Children.OfType<Border>()
                     .FirstOrDefault(b => b.Tag == _draggedShape);
 
@@ -383,9 +373,11 @@ namespace ShapesTestTask
 
         private void Shape_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            _draggedShape = null; // Завершаем перетаскивание
+            _draggedShape = null;
         }
 
+
+        // Проверяет доступность места для добавления новых шейпов
         private void CheckFreePositions()
         {
             var newShape = _shapeService.AddShape(ShapesCanvas.ActualWidth, ShapesCanvas.ActualHeight);

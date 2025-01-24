@@ -8,11 +8,13 @@
         private const int ShapeWidth = 100;
         private const int ShapeHeight = 50;
 
+        //Возврат списка шейпов
         public IEnumerable<Shape> GetShapes()
         {
             return shapes;
         }
 
+        //Добавление шейпа
         public Shape AddShape(double canvasWidth, double canvasHeight)
         {
             var name = $"Shape {shapesCounter}";
@@ -39,6 +41,8 @@
             return newShape;
         }
 
+
+        //Удаление шейпа и переназначение предыдущего и слудующего шейпов
         public void DeleteShape(string shapeName)
         {
             var shape = shapes.FirstOrDefault(s => s.Name == shapeName);
@@ -66,11 +70,15 @@
             }
         }
 
+
+        //Уменьшение счётчика шейпов
         public void DecreaseNumberOfShapes()
         {
             shapesCounter--;
         }
 
+
+        //Нахождение случайной свободной позиции
         private (double x, double y)? FindRandomFreePosition(double canvasWidth, double canvasHeight)
         {
             double x, y;
@@ -88,6 +96,8 @@
             return attempts < maxRetries ? (x, y) : null; 
         }
 
+
+        //Проверка на доступность позиции
         private bool IsPositionAvailable(double x, double y, double canvasWidth, double canvasHeight)
         {
             if (x > canvasWidth - 150 || y > canvasHeight - 150)
@@ -106,6 +116,7 @@
             return true;
         }
 
+        //Получение рандомного цвета для обводки шейпа
         private string GetRandomColor()
         {
             var random = new Random();
